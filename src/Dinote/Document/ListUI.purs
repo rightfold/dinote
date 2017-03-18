@@ -10,15 +10,15 @@ import Control.Monad.State.Class as State
 import Control.Monad.Trans.Class (lift)
 import Data.Array as Array
 import Data.Lens ((^.))
+import Dinote.Document (Document, DocumentID, documentID, documentName)
+import Dinote.Document.Algebra (DocumentM, getDocuments)
+import Dinote.Prelude
 import Halogen.Component (Component, ComponentDSL, ComponentHTML, lifecycleComponent)
 import Halogen.HTML (HTML)
 import Halogen.HTML as H
 import Halogen.HTML.Events as E
 import Halogen.HTML.Properties as P
 import Halogen.Query (raise)
-import Dinote.Document (Document, DocumentID, documentID, documentName)
-import Dinote.Document.Algebra (DocumentM, getDocuments)
-import Dinote.Prelude
 
 type State   =
   { documents :: List Document
