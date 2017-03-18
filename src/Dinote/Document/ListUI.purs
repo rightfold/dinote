@@ -2,6 +2,7 @@ module Dinote.Document.ListUI
   ( Query
   , Input
   , Output
+  , Monad
   , ui
   ) where
 
@@ -28,8 +29,9 @@ data Query a
   | Select DocumentID a
 type Input   = Unit
 type Output  = DocumentID
+type Monad   = DocumentM
 
-ui :: Component HTML Query Input Output DocumentM
+ui :: Component HTML Query Input Output Monad
 ui = lifecycleComponent { initialState
                         , render
                         , eval
@@ -57,7 +59,7 @@ ui = lifecycleComponent { initialState
     selected = selection == Just documentID'
     documentID' = document ^. documentID
 
-  eval :: Query ~> ComponentDSL State Query Output DocumentM
+  eval :: Query ~> ComponentDSL State Query Output Monad
   eval (Initialize next) = do
     documents <- lift getDocuments
     State.put {documents, selection: Nothing}
