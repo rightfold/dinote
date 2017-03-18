@@ -1,0 +1,9 @@
+{
+  "name": "dinote",
+  "dependencies": {
+    "purescript-halogen": "^1.1.0",
+    "purescript-prelude": "^2.5.0",
+    "purescript-maybe": "^2.1.1",
+    "purescript-eff": "^2.0.0"
+  }
+}
