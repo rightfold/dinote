@@ -3,10 +3,13 @@ module Main
   ) where
 
 import Control.Monad.Eff (Eff)
-import Dinote.UI (ui)
+import Dinote.Document.Dummy (runDocumentF)
+import Dinote.Document.ListUI (ui)
+import Dinote.Prelude
 import Halogen.Aff (HalogenEffects, awaitBody, runHalogenAff)
+import Halogen.Component (hoist)
 import Halogen.VDom.Driver (runUI)
-import Prelude
 
 main :: ∀ eff. Eff (HalogenEffects eff) Unit
-main = runHalogenAff $ awaitBody >>= runUI ui unit
+main = runHalogenAff $ awaitBody >>= runUI (hoist run ui) unit
+  where run = foldFree runDocumentF
