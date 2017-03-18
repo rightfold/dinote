@@ -14,6 +14,7 @@ import Halogen.HTML (HTML)
 import Halogen.HTML as H
 import Halogen.HTML.Events as E
 import Halogen.HTML.Properties as P
+import Halogen.Query (raise)
 import Dinote.Document (Document, DocumentID, documentID, documentName)
 import Dinote.Document.Algebra (DocumentM, getDocuments)
 import Dinote.Prelude
@@ -26,7 +27,7 @@ data Query a
   = Initialize a
   | Select DocumentID a
 type Input   = Unit
-type Output  = Void
+type Output  = DocumentID
 
 ui :: Component HTML Query Input Output DocumentM
 ui = lifecycleComponent { initialState
@@ -61,8 +62,10 @@ ui = lifecycleComponent { initialState
     documents <- lift getDocuments
     State.put {documents, selection: Nothing}
     pure next
-  eval (Select id next) =
-    next <$ State.modify _ {selection = Just id}
+  eval (Select id next) = do
+    State.modify _ {selection = Just id}
+    raise id
+    pure next
 
   receiver :: Input -> Maybe (Query Unit)
   receiver = const Nothing
