@@ -9,6 +9,7 @@
     "purescript-profunctor-lenses": "^2.6.0",
     "purescript-arrays": "^3.2.1",
     "purescript-free": "^3.5.1",
-    "purescript-transformers": "^2.2.0"
+    "purescript-transformers": "^2.2.0",
+    "purescript-newtype": "^1.3.0"
   }
 }
