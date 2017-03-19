@@ -7,6 +7,7 @@ module Dinote.UI
 
 import Control.Monad.State.Class as State
 import Dinote.Document (DocumentID)
+import Dinote.Document.Algebra (DocumentM)
 import Dinote.Document.EditUI as Document.EditUI
 import Dinote.Document.ListUI as Document.ListUI
 import Dinote.Prelude
@@ -21,7 +22,7 @@ type ChildQuery = Document.ListUI.Query <+> Document.EditUI.Query <+> Const Void
 type Input      = Unit
 type Output     = Void
 type Slot       = Unit + Unit + Void
-type Monad      = Document.ListUI.Monad
+type Monad      = DocumentM
 
 ui :: Component HTML Query Input Output Monad
 ui = parentComponent {initialState, render, eval, receiver}
