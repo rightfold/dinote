@@ -10,7 +10,7 @@ import Dinote.Prelude
 type DocumentM = Free DocumentF
 
 data DocumentF a
-  = GetDocuments (Map DocumentID Document -> a)
+  = GetDocuments (Map DocumentID (Document Unit) -> a)
 
-getDocuments :: DocumentM (Map DocumentID Document)
+getDocuments :: DocumentM (Map DocumentID (Document Unit))
 getDocuments = liftF $ GetDocuments id

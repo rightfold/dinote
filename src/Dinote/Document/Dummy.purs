@@ -10,5 +10,5 @@ import Dinote.Prelude
 runDocumentF :: ∀ m. (Applicative m) => DocumentF ~> m
 runDocumentF (GetDocuments next) = pure <<< next $
   Map.empty
-  # Map.insert (DocumentID "1") (Document "Lorem")
-  # Map.insert (DocumentID "2") (Document "Ipsum")
+  # Map.insert (DocumentID "1") (Document "Lorem" unit)
+  # Map.insert (DocumentID "2") (Document "Ipsum" unit)

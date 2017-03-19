@@ -22,7 +22,7 @@ import Halogen.HTML.Properties as P
 import Halogen.Query (raise)
 
 type State   =
-  { documents :: Map DocumentID Document
+  { documents :: Map DocumentID (Document Unit)
   , selection :: Maybe DocumentID
   }
 data Query a
@@ -51,7 +51,7 @@ ui = lifecycleComponent { initialState
 
   renderDocument
     :: Maybe DocumentID
-    -> DocumentID * Document
+    -> DocumentID * Document Unit
     -> ComponentHTML Query
   renderDocument selection (documentID /\ document) =
     H.li [ P.classes classes
