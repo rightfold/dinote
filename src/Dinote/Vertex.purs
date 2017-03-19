@@ -1,7 +1,6 @@
 module Dinote.Vertex
   ( VertexID(..)
   , Vertex
-  , vertexID
   , vertexBody
   ) where
 
@@ -13,14 +12,9 @@ newtype VertexID = VertexID String
 derive newtype instance eqVertexID :: Eq VertexID
 derive newtype instance ordVertexID :: Ord VertexID
 
-data Vertex = Vertex VertexID (Expression + String)
-
-vertexID :: Lens' Vertex VertexID
-vertexID = lens get set
-  where get (Vertex id _) = id
-        set (Vertex _ body) id = Vertex id body
+newtype Vertex = Vertex (Expression + String)
 
 vertexBody :: Lens' Vertex (Expression + String)
 vertexBody = lens get set
-  where get (Vertex _ body) = body
-        set (Vertex id _) body = Vertex id body
+  where get (Vertex body) = body
+        set (Vertex _) body = Vertex body

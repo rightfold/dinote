@@ -4,13 +4,13 @@ module Dinote.Document.Algebra
   , getDocuments
   ) where
 
-import Dinote.Document (Document)
+import Dinote.Document (Document, DocumentID)
 import Dinote.Prelude
 
 type DocumentM = Free DocumentF
 
 data DocumentF a
-  = GetDocuments (List Document -> a)
+  = GetDocuments (Map DocumentID Document -> a)
 
-getDocuments :: DocumentM (List Document)
+getDocuments :: DocumentM (Map DocumentID Document)
 getDocuments = liftF $ GetDocuments id

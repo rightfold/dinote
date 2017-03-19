@@ -10,7 +10,8 @@ import Control.Monad.State.Class as State
 import Control.Monad.Trans.Class (lift)
 import Data.Array as Array
 import Data.Lens ((^.))
-import Dinote.Document (Document, DocumentID, documentID, documentName)
+import Data.Map as Map
+import Dinote.Document (Document, DocumentID, documentName)
 import Dinote.Document.Algebra (DocumentM, getDocuments)
 import Dinote.Prelude
 import Halogen.Component (Component, ComponentDSL, ComponentHTML, lifecycleComponent)
@@ -21,7 +22,7 @@ import Halogen.HTML.Properties as P
 import Halogen.Query (raise)
 
 type State   =
-  { documents :: List Document
+  { documents :: Map DocumentID Document
   , selection :: Maybe DocumentID
   }
 data Query a
@@ -41,23 +42,25 @@ ui = lifecycleComponent { initialState
                         }
   where
   initialState :: Input -> State
-  initialState _ = {documents: Nil, selection: Nothing}
+  initialState _ = {documents: Map.empty, selection: Nothing}
 
   render :: State -> ComponentHTML Query
   render {documents, selection} =
     H.ul [] <<< Array.fromFoldable $
-      map (renderDocument selection) documents
+      map (renderDocument selection) (Map.toList documents)
 
-  renderDocument :: Maybe DocumentID -> Document -> ComponentHTML Query
-  renderDocument selection document =
+  renderDocument
+    :: Maybe DocumentID
+    -> DocumentID * Document
+    -> ComponentHTML Query
+  renderDocument selection (documentID /\ document) =
     H.li [ P.classes classes
-         , E.onClick (E.input_ (Select documentID'))
+         , E.onClick (E.input_ (Select documentID))
          ]
       [H.text $ document ^. documentName]
     where
     classes = Array.filter (const $ selected) [wrap "-selected"]
-    selected = selection == Just documentID'
-    documentID' = document ^. documentID
+    selected = selection == Just documentID
 
   eval :: Query ~> ComponentDSL State Query Output Monad
   eval (Initialize next) = do
