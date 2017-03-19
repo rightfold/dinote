@@ -10,5 +10,6 @@ type Expression = Mu ExpressionF
 
 data ExpressionF a
   = Var String
+  | Sum (List a)
 
 derive instance functorExpressionF :: Functor ExpressionF

@@ -17,6 +17,9 @@
     "purescript-debug": "^2.0.0",
     "purescript-fixed-points": "^3.0.0",
     "purescript-maps": "^2.1.2",
-    "purescript-tuples": "^3.2.0"
+    "purescript-tuples": "^3.2.0",
+    "purescript-matryoshka": "^0.2.0",
+    "purescript-foldable-traversable": "^2.2.0",
+    "purescript-globals": "^2.0.0"
   }
 }

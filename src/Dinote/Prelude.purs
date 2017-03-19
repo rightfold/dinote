@@ -1,6 +1,7 @@
 module Dinote.Prelude
   ( module Control.Monad.Free
   , module Data.Const
+  , module Data.Either
   , module Data.List
   , module Data.Map
   , module Data.Maybe
@@ -15,11 +16,11 @@ module Dinote.Prelude
 
 import Control.Monad.Free (Free, foldFree, liftF)
 import Data.Const (Const)
-import Data.Either (Either)
+import Data.Either (Either(..), either)
 import Data.Functor.Coproduct (Coproduct)
 import Data.List (List(..), (:))
 import Data.Map (Map)
-import Data.Maybe (Maybe(..))
+import Data.Maybe (Maybe(..), fromMaybe)
 import Data.Newtype (wrap)
 import Data.Tuple (Tuple)
 import Data.Tuple.Nested ((/\))
