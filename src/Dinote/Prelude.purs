@@ -6,6 +6,7 @@ module Dinote.Prelude
   , module Data.Map
   , module Data.Maybe
   , module Data.Newtype
+  , module Data.Tuple
   , module Data.Tuple.Nested
   , module Debug.Trace
   , module Prelude
@@ -20,9 +21,9 @@ import Data.Either (Either(..), either)
 import Data.Functor.Coproduct (Coproduct)
 import Data.List (List(..), (:))
 import Data.Map (Map)
-import Data.Maybe (Maybe(..), fromMaybe)
+import Data.Maybe (Maybe(..), fromMaybe, maybe)
 import Data.Newtype (wrap)
-import Data.Tuple (Tuple)
+import Data.Tuple (Tuple, uncurry)
 import Data.Tuple.Nested ((/\))
 import Debug.Trace (traceAnyA)
 import Prelude

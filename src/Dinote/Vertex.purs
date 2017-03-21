@@ -1,6 +1,6 @@
 module Dinote.Vertex
   ( VertexID(..)
-  , Vertex
+  , Vertex(..)
   , vertexBody
   , vertexChildren
   ) where
