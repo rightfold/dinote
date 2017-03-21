@@ -29,8 +29,8 @@ runDocumentF (GetDocument id next) = pure <<< next $ case id of
   ipsumBody :: Map VertexID Vertex
   ipsumBody =
     Map.empty
-    # Map.insert (VertexID "1") (Vertex (Right "1.1") Nil)
-    # Map.insert (VertexID "2") (Vertex (Right "2.2") Nil)
+    # Map.insert (VertexID "1") (Vertex (Right "1.23") Nil)
+    # Map.insert (VertexID "2") (Vertex (Right "2.34") Nil)
     # Map.insert (VertexID "3") (Vertex (Left sum) Nil)
     where sum = roll (Sum (map roll (Var "1" : Var "2" : Nil)))
 

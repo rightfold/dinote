@@ -1,11 +1,13 @@
 module Dinote.Prelude
-  ( module Control.Monad.Free
+  ( module Control.Alt
+  , module Control.Monad.Free
   , module Data.Const
   , module Data.Either
   , module Data.List
   , module Data.Map
   , module Data.Maybe
   , module Data.Newtype
+  , module Data.Traversable
   , module Data.Tuple
   , module Data.Tuple.Nested
   , module Debug.Trace
@@ -15,6 +17,7 @@ module Dinote.Prelude
   , type (<+>)
   ) where
 
+import Control.Alt ((<|>))
 import Control.Monad.Free (Free, foldFree, liftF)
 import Data.Const (Const)
 import Data.Either (Either(..), either)
@@ -23,6 +26,7 @@ import Data.List (List(..), (:))
 import Data.Map (Map)
 import Data.Maybe (Maybe(..), fromMaybe, maybe)
 import Data.Newtype (wrap)
+import Data.Traversable (traverse)
 import Data.Tuple (Tuple, uncurry)
 import Data.Tuple.Nested ((/\))
 import Debug.Trace (traceAnyA)
