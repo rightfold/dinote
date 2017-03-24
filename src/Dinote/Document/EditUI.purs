@@ -8,13 +8,15 @@ module Dinote.Document.EditUI
 
 import Control.Monad.State.Class as State
 import Control.Monad.Trans.Class (lift)
+import Data.Array as Array
 import Data.Lens ((.=), (^.), _Just, first, second, use)
 import Data.Lens.Index (ix)
+import Data.List as List
 import Data.Map as Map
 import Dinote.Document (Document, DocumentID, documentBody)
 import Dinote.Document.Algebra (DocumentM, getDocument)
 import Dinote.Prelude
-import Dinote.Vertex (Vertex, VertexID)
+import Dinote.Vertex (Vertex, VertexID, vertexChildren)
 import Dinote.Vertex.UI as Vertex.UI
 import Halogen.Component (Component, ParentDSL, ParentHTML, lifecycleParentComponent)
 import Halogen.HTML (HTML)
@@ -28,7 +30,7 @@ data Query a
 type ChildQuery = Vertex.UI.Query
 type Input      = DocumentID
 type Output     = Void
-type Slot       = VertexID
+type Slot       = List Int
 type Monad      = DocumentM
 
 ui :: Component HTML Query Input Output Monad
@@ -46,18 +48,34 @@ ui = lifecycleParentComponent { initialState
   render :: State -> ParentHTML Query ChildQuery Slot Monad
   render (_ /\ Nothing) = H.text "This document does not exist."
   render (_ /\ Just document) =
-    H.ul [] $
-      document ^. documentBody
-      # Map.toUnfoldable
-      # map (H.li [] <<< pure <<< uncurry renderVertex)
+    renderVertices Nil vertices (Map.toList vertices)
+    where vertices = document ^. documentBody
+
+  renderVertices
+    :: Slot
+    -> Map VertexID Vertex
+    -> List (VertexID * Vertex)
+    -> ParentHTML Query ChildQuery Slot Monad
+  renderVertices slot all = H.ul [] <<<
+    Array.fromFoldable
+    >>> Array.mapWithIndex \i ->
+          H.li [] <<< pure <<< uncurry (renderVertex (i : slot) all)
 
   renderVertex
-    :: VertexID
+    :: Slot
+    -> Map VertexID Vertex
+    -> VertexID
     -> Vertex
     -> ParentHTML Query ChildQuery Slot Monad
-  renderVertex vertexID vertex =
-    H.slot vertexID Vertex.UI.ui vertex handle
-    where handle = Just <<< VertexChanged vertexID `flip` unit
+  renderVertex slot all vertexID vertex =
+    H.div []
+      [ H.slot slot Vertex.UI.ui vertex handle
+      , renderVertices slot all children
+      ]
+    where
+    handle = Just <<< VertexChanged vertexID `flip` unit
+    children = List.mapMaybe (sequence <<< ((/\) <*> Map.lookup `flip` all))
+                             (vertex ^. vertexChildren)
 
   eval :: Query ~> ParentDSL State Query ChildQuery Slot Output Monad
   eval (Initialize next) = reload next
