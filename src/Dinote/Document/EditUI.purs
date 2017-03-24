@@ -9,7 +9,8 @@ module Dinote.Document.EditUI
 import Control.Monad.State.Class as State
 import Control.Monad.Trans.Class (lift)
 import Data.Array as Array
-import Data.Lens ((.=), (^.), first, second, use)
+import Data.Lens ((.=), (^.), _Just, first, second, use)
+import Data.Lens.Index (ix)
 import Data.Map as Map
 import Dinote.Document (Document, DocumentID, documentBody)
 import Dinote.Document.Algebra (DocumentM, getDocument)
@@ -24,6 +25,7 @@ type State      = DocumentID * Maybe (Document (Map VertexID Vertex))
 data Query a
   = Initialize a
   | DocumentSelected DocumentID a
+  | VertexChanged VertexID Vertex a
 type ChildQuery = Vertex.UI.Query
 type Input      = DocumentID
 type Output     = Void
@@ -57,11 +59,15 @@ ui = lifecycleParentComponent { initialState
     -> VertexID
     -> ParentHTML Query ChildQuery Slot Monad
   renderVertex vertices vertexID =
-    H.slot vertexID Vertex.UI.ui (vertices /\ vertexID) absurd
+    H.slot vertexID Vertex.UI.ui (vertices /\ vertexID) handle
+    where handle = uncurry \i v -> Just $ VertexChanged i v unit
 
   eval :: Query ~> ParentDSL State Query ChildQuery Slot Output Monad
   eval (Initialize next) = reload next
   eval (DocumentSelected id next) = State.put (id /\ Nothing) *> reload next
+  eval (VertexChanged vertexID vertex next) = do
+    second <<< _Just <<< documentBody <<< ix vertexID .= vertex
+    pure next
 
   reload :: ∀ a. a -> ParentDSL State Query ChildQuery Slot Output Monad a
   reload = (_ <$ (second .= _) =<< lift <<< getDocument =<< use first)
