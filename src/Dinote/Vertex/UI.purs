@@ -6,7 +6,7 @@ module Dinote.Vertex.UI
   ) where
 
 import Control.Monad.State.Class as State
-import Data.Lens ((^.))
+import Data.Lens ((.~), (^.))
 import Data.Map as Map
 import Dinote.Expression as Expression
 import Dinote.Expression.Evaluate (evaluate)
@@ -17,6 +17,7 @@ import Halogen.HTML (HTML)
 import Halogen.HTML as H
 import Halogen.HTML.Events as E
 import Halogen.HTML.Properties as P
+import Halogen.Query (raise)
 
 type State   =
   { vertices :: Map VertexID Vertex
@@ -26,6 +27,7 @@ type State   =
 data Query a
   = VerticesChanged (Map VertexID Vertex) VertexID a
   | BeginEdit a
+  | CommitEdit String a
 type Input   = Map VertexID Vertex * VertexID
 type Output  = VertexID * Vertex
 
@@ -42,7 +44,10 @@ ui = component {initialState, render, eval, receiver}
             ((if editing then renderEditor else renderViewer) vertices)
 
   renderEditor :: Map VertexID Vertex -> Vertex -> ComponentHTML Query
-  renderEditor vertices vertex = H.input [P.value textual]
+  renderEditor vertices vertex =
+    H.input [ E.onValueChange (E.input CommitEdit)
+            , P.value textual
+            ]
     where
     textual = case vertex ^. vertexBody of
       Left expression -> "=" <> Expression.pretty expression
@@ -63,6 +68,15 @@ ui = component {initialState, render, eval, receiver}
   eval (VerticesChanged vertices pointer next) =
     next <$ State.modify _ {vertices = vertices, pointer = pointer}
   eval (BeginEdit next) = next <$ State.modify _ {editing = true}
+  eval (CommitEdit text next) = do
+    State.modify _ {editing = false}
+    {pointer, vertices} <- State.get
+    case Map.lookup pointer vertices of
+      Nothing -> pure unit
+      Just vertex ->
+        let vertex' = vertex # vertexBody .~ Right text
+        in raise $ pointer /\ vertex'
+    pure next
 
   receiver :: Input -> Maybe (Query Unit)
   receiver = Just <<< uncurry VerticesChanged `flip` unit
