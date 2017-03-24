@@ -3,6 +3,7 @@ module Dinote.Prelude
   , module Control.Monad.Free
   , module Data.Const
   , module Data.Either
+  , module Data.Foldable
   , module Data.List
   , module Data.Map
   , module Data.Maybe
@@ -21,6 +22,7 @@ import Control.Alt ((<|>))
 import Control.Monad.Free (Free, foldFree, liftF)
 import Data.Const (Const)
 import Data.Either (Either(..), either)
+import Data.Foldable (intercalate)
 import Data.Functor.Coproduct (Coproduct)
 import Data.List (List(..), (:))
 import Data.Map (Map)

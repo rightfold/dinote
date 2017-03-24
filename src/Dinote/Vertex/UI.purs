@@ -8,6 +8,7 @@ module Dinote.Vertex.UI
 import Control.Monad.State.Class as State
 import Data.Lens ((^.))
 import Data.Map as Map
+import Dinote.Expression as Expression
 import Dinote.Expression.Evaluate (evaluate)
 import Dinote.Prelude
 import Dinote.Vertex (Vertex, VertexID, vertexBody)
@@ -44,7 +45,7 @@ ui = component {initialState, render, eval, receiver}
   renderEditor vertices vertex = H.input [P.value textual]
     where
     textual = case vertex ^. vertexBody of
-      Left expression -> "(todo)"
+      Left expression -> "=" <> Expression.pretty expression
       Right text      -> text
 
   renderViewer :: Map VertexID Vertex -> Vertex -> ComponentHTML Query
