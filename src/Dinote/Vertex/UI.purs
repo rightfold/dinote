@@ -7,11 +7,9 @@ module Dinote.Vertex.UI
 
 import Control.Monad.State.Class as State
 import Data.Lens ((.~), (^.))
-import Data.Map as Map
 import Dinote.Expression as Expression
-import Dinote.Expression.Evaluate (evaluate)
 import Dinote.Prelude
-import Dinote.Vertex (Vertex, VertexID, vertexBody)
+import Dinote.Vertex (Vertex, vertexBody)
 import Halogen.Component (Component, ComponentDSL, ComponentHTML, component)
 import Halogen.HTML (HTML)
 import Halogen.HTML as H
@@ -20,31 +18,28 @@ import Halogen.HTML.Properties as P
 import Halogen.Query (raise)
 
 type State   =
-  { vertices :: Map VertexID Vertex
-  , pointer  :: VertexID
-  , editing  :: Boolean
+  { vertex  :: Vertex
+  , editing :: Boolean
   }
 data Query a
-  = VerticesChanged (Map VertexID Vertex) VertexID a
+  = VertexChanged Vertex a
   | BeginEdit a
   | CommitEdit String a
-type Input   = Map VertexID Vertex * VertexID
-type Output  = VertexID * Vertex
+type Input   = Vertex
+type Output  = Vertex
 
 ui :: ∀ m. Component HTML Query Input Output m
 ui = component {initialState, render, eval, receiver}
   where
   initialState :: Input -> State
-  initialState = uncurry {vertices: _, pointer: _, editing: false}
+  initialState = {vertex: _, editing: false}
 
   render :: State -> ComponentHTML Query
-  render {vertices, pointer, editing} =
-    Map.lookup pointer vertices
-    # maybe (H.text "This vertex does not exist.")
-            ((if editing then renderEditor else renderViewer) vertices)
+  render {vertex, editing: true}  = renderEditor vertex
+  render {vertex, editing: false} = renderViewer vertex
 
-  renderEditor :: Map VertexID Vertex -> Vertex -> ComponentHTML Query
-  renderEditor vertices vertex =
+  renderEditor :: Vertex -> ComponentHTML Query
+  renderEditor vertex =
     H.input [ E.onValueChange (E.input CommitEdit)
             , P.value textual
             ]
@@ -53,30 +48,24 @@ ui = component {initialState, render, eval, receiver}
       Left expression -> "=" <> Expression.pretty expression
       Right text      -> text
 
-  renderViewer :: Map VertexID Vertex -> Vertex -> ComponentHTML Query
-  renderViewer vertices vertex =
+  renderViewer :: Vertex -> ComponentHTML Query
+  renderViewer vertex =
     H.div [E.onDoubleClick (E.input_ BeginEdit)]
       [go]
     where
     go = case vertex ^. vertexBody of
-      Left expression ->
-        let vertices' = Map.lookup `flip` vertices >>> map (_ ^. vertexBody)
-        in H.text (evaluate vertices' expression)
+      Left expression -> H.text "TODO"
       Right text      -> H.text text
 
   eval :: Query ~> ComponentDSL State Query Output m
-  eval (VerticesChanged vertices pointer next) =
-    next <$ State.modify _ {vertices = vertices, pointer = pointer}
+  eval (VertexChanged vertex next) = next <$ State.modify _ {vertex = vertex}
   eval (BeginEdit next) = next <$ State.modify _ {editing = true}
   eval (CommitEdit text next) = do
-    State.modify _ {editing = false}
-    {pointer, vertices} <- State.get
-    case Map.lookup pointer vertices of
-      Nothing -> pure unit
-      Just vertex ->
-        let vertex' = vertex # vertexBody .~ Right text
-        in raise $ pointer /\ vertex'
+    State.modify \s ->
+      let vertex' = s.vertex # vertexBody .~ Right text
+      in s {vertex = vertex', editing = false}
+    raise =<< State.gets _.vertex
     pure next
 
   receiver :: Input -> Maybe (Query Unit)
-  receiver = Just <<< uncurry VerticesChanged `flip` unit
+  receiver = Just <<< VertexChanged `flip` unit

@@ -8,7 +8,6 @@ module Dinote.Document.EditUI
 
 import Control.Monad.State.Class as State
 import Control.Monad.Trans.Class (lift)
-import Data.Array as Array
 import Data.Lens ((.=), (^.), _Just, first, second, use)
 import Data.Lens.Index (ix)
 import Data.Map as Map
@@ -48,19 +47,17 @@ ui = lifecycleParentComponent { initialState
   render (_ /\ Nothing) = H.text "This document does not exist."
   render (_ /\ Just document) =
     H.ul [] $
-      vertices
-      # Map.keys
-      # Array.fromFoldable
-      # map (H.li [] <<< pure <<< renderVertex vertices)
-    where vertices = document ^. documentBody
+      document ^. documentBody
+      # Map.toUnfoldable
+      # map (H.li [] <<< pure <<< uncurry renderVertex)
 
   renderVertex
-    :: Map VertexID Vertex
-    -> VertexID
+    :: VertexID
+    -> Vertex
     -> ParentHTML Query ChildQuery Slot Monad
-  renderVertex vertices vertexID =
-    H.slot vertexID Vertex.UI.ui (vertices /\ vertexID) handle
-    where handle = uncurry \i v -> Just $ VertexChanged i v unit
+  renderVertex vertexID vertex =
+    H.slot vertexID Vertex.UI.ui vertex handle
+    where handle = Just <<< VertexChanged vertexID `flip` unit
 
   eval :: Query ~> ParentDSL State Query ChildQuery Slot Output Monad
   eval (Initialize next) = reload next
