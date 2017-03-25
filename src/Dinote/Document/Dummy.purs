@@ -2,11 +2,9 @@ module Dinote.Document.Dummy
   ( runDocumentF
   ) where
 
-import Data.Functor.Mu (roll)
 import Data.Map as Map
 import Dinote.Document (Document(..), DocumentID(..))
 import Dinote.Document.Algebra (DocumentF(..))
-import Dinote.Expression (ExpressionF(..))
 import Dinote.Prelude
 import Dinote.Vertex (Vertex(..), VertexID(..))
 
@@ -23,14 +21,13 @@ runDocumentF (GetDocument id next) = pure <<< next $ case id of
   loremBody :: Map VertexID Vertex
   loremBody =
     Map.empty
-    # Map.insert (VertexID "1") (Vertex (Right "Hello") (VertexID "2" : Nil))
-    # Map.insert (VertexID "2") (Vertex (Right "World") Nil)
+    # Map.insert (VertexID "1") (Vertex "Hello" (VertexID "2" : Nil))
+    # Map.insert (VertexID "2") (Vertex "World" Nil)
 
   ipsumBody :: Map VertexID Vertex
   ipsumBody =
     Map.empty
-    # Map.insert (VertexID "1") (Vertex (Right "1.23") Nil)
-    # Map.insert (VertexID "2") (Vertex (Right "2.34") Nil)
-    # Map.insert (VertexID "3") (Vertex (Left sum) Nil)
-    where sum = roll (Sum (map roll (Var "1" : Var "2" : Nil)))
+    # Map.insert (VertexID "1") (Vertex "1.23" Nil)
+    # Map.insert (VertexID "2") (Vertex "2.34" Nil)
+    # Map.insert (VertexID "3") (Vertex "!`SUM($1, $2)`" Nil)
 

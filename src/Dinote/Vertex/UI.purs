@@ -7,7 +7,6 @@ module Dinote.Vertex.UI
 
 import Control.Monad.State.Class as State
 import Data.Lens (Lens', (.=), (^.), lens)
-import Dinote.Expression as Expression
 import Dinote.Prelude
 import Dinote.Vertex (Vertex, vertexBody)
 import DOM.Event.KeyboardEvent as KeyboardEvent
@@ -49,31 +48,26 @@ ui = component {initialState, render, eval, receiver}
 
   renderEditor :: Vertex -> ComponentHTML Query
   renderEditor vertex =
-    H.input [ E.onValueChange (E.input SaveEdit)
-            , E.onBlur (E.input_ CommitEdit)
-            , E.onKeyDown ((*>) <$> guard <<< commitKey <*> E.input_ CommitEdit)
-            , P.value textual
-            ]
+    H.textarea
+      [ E.onValueChange (E.input SaveEdit)
+      , E.onBlur (E.input_ CommitEdit)
+      , E.onKeyDown ((*>) <$> guard <<< commitKey <*> E.input_ CommitEdit)
+      , P.value textual
+      ]
     where
     commitKey = (&&) <$> eq "Enter" <<< KeyboardEvent.key
                      <*> not (altKey || ctrlKey || shiftKey)
-    textual = case vertex ^. vertexBody of
-      Left expression -> "=" <> Expression.pretty expression
-      Right text      -> text
+    textual = vertex ^. vertexBody
 
   renderViewer :: Vertex -> ComponentHTML Query
   renderViewer vertex =
     H.div [E.onDoubleClick (E.input_ BeginEdit)]
-      [go]
-    where
-    go = case vertex ^. vertexBody of
-      Left expression -> H.text "TODO"
-      Right text      -> H.text text
+      [H.text $ vertex ^. vertexBody]
 
   eval :: Query ~> ComponentDSL State Query Output m
   eval (VertexChanged vertex next) = next <$ (stateVertex .= vertex)
   eval (BeginEdit next) = next <$ (stateEditing .= true)
-  eval (SaveEdit text next) = next <$ (stateVertex <<< vertexBody .= Right text)
+  eval (SaveEdit text next) = next <$ (stateVertex <<< vertexBody .= text)
   eval (CommitEdit next) = do
     stateEditing .= false
     raise =<< State.gets _.vertex
