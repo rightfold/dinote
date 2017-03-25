@@ -8,6 +8,8 @@ module Dinote.Vertex.UI
 import Control.Monad.State.Class as State
 import Data.Lens (Lens', (.=), (^.), lens)
 import Data.StrMap as StrMap
+import Dinote.Expression.Evaluate (evaluate)
+import Dinote.Expression.Parse (parse)
 import Dinote.Prelude
 import Dinote.Vertex (Vertex, vertexBody)
 import DOM.Event.KeyboardEvent as KeyboardEvent
@@ -18,9 +20,11 @@ import Halogen.HTML as H
 import Halogen.HTML.Events as E
 import Halogen.HTML.Properties as P
 import Halogen.Query (raise)
+import Text.Markdown.SlamDown (SlamDownP)
+import Text.Markdown.SlamDown as SlamDown
 import Text.Markdown.SlamDown.Halogen.Component (SlamDownState(..), renderSlamDown)
 import Text.Markdown.SlamDown.Parser (parseMd)
-import Text.Markdown.SlamDown.Syntax (SlamDownP)
+import Text.Markdown.SlamDown.Traverse as SlamDown.Traverse
 
 type State   =
   { vertex  :: Vertex
@@ -69,10 +73,17 @@ ui = component {initialState, render, eval, receiver}
     H.div [E.onDoubleClick (E.input_ BeginEdit)] $
       case parseMd (vertex ^. vertexBody) of
         Left error -> [H.text error]
-        Right (document :: SlamDownP String) ->
-          let sdState = SlamDownState {document, formState: StrMap.empty}
+        Right (rawDocument :: SlamDownP String) ->
+          let document = evaluateDocument rawDocument
+              sdState = SlamDownState {document, formState: StrMap.empty}
           in [Void unit <$ renderSlamDown sdConfig sdState]
     where
+    evaluateDocument = SlamDown.Traverse.everywhere id case _ of
+      SlamDown.Code true source ->
+        case parse source of
+          Just expression -> SlamDown.Str $ evaluate (const Nothing) expression
+          Nothing         -> SlamDown.Str "ERROR"
+      inline -> inline
     sdConfig = { formName: ""
                , browserFeatures: {inputTypeSupported: const false}
                }

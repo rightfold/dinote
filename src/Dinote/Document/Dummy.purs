@@ -29,5 +29,4 @@ runDocumentF (GetDocument id next) = pure <<< next $ case id of
     Map.empty
     # Map.insert (VertexID "1") (Vertex "1.23" Nil)
     # Map.insert (VertexID "2") (Vertex "2.34" Nil)
-    # Map.insert (VertexID "3") (Vertex "!`SUM($1, $2)`" Nil)
-
+    # Map.insert (VertexID "3") (Vertex "!`(\"+\" \"$1\" \"$2\")`" Nil)

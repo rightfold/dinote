@@ -26,6 +26,7 @@
     "purescript-control": "^2.0.0",
     "purescript-dom": "^3.7.0",
     "purescript-markdown-halogen": "^5.0.0",
-    "purescript-markdown": "^9.0.0"
+    "purescript-markdown": "^9.0.0",
+    "purescript-sexp": "^2.0.0"
   }
 }
