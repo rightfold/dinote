@@ -6,10 +6,12 @@ module Dinote.Vertex.UI
   ) where
 
 import Control.Monad.State.Class as State
-import Data.Lens ((.~), (^.))
+import Data.Lens (Lens', (.=), (^.), lens)
 import Dinote.Expression as Expression
 import Dinote.Prelude
 import Dinote.Vertex (Vertex, vertexBody)
+import DOM.Event.KeyboardEvent as KeyboardEvent
+import DOM.Event.KeyboardEvent (altKey, ctrlKey, shiftKey)
 import Halogen.Component (Component, ComponentDSL, ComponentHTML, component)
 import Halogen.HTML (HTML)
 import Halogen.HTML as H
@@ -24,9 +26,16 @@ type State   =
 data Query a
   = VertexChanged Vertex a
   | BeginEdit a
-  | CommitEdit String a
+  | SaveEdit String a
+  | CommitEdit a
 type Input   = Vertex
 type Output  = Vertex
+
+stateVertex :: Lens' State Vertex
+stateVertex = lens _.vertex _ {vertex = _}
+
+stateEditing :: Lens' State Boolean
+stateEditing = lens _.editing _ {editing = _}
 
 ui :: ∀ m. Component HTML Query Input Output m
 ui = component {initialState, render, eval, receiver}
@@ -40,10 +49,14 @@ ui = component {initialState, render, eval, receiver}
 
   renderEditor :: Vertex -> ComponentHTML Query
   renderEditor vertex =
-    H.input [ E.onValueChange (E.input CommitEdit)
+    H.input [ E.onValueChange (E.input SaveEdit)
+            , E.onBlur (E.input_ CommitEdit)
+            , E.onKeyDown ((*>) <$> guard <<< commitKey <*> E.input_ CommitEdit)
             , P.value textual
             ]
     where
+    commitKey = (&&) <$> eq "Enter" <<< KeyboardEvent.key
+                     <*> not (altKey || ctrlKey || shiftKey)
     textual = case vertex ^. vertexBody of
       Left expression -> "=" <> Expression.pretty expression
       Right text      -> text
@@ -58,12 +71,11 @@ ui = component {initialState, render, eval, receiver}
       Right text      -> H.text text
 
   eval :: Query ~> ComponentDSL State Query Output m
-  eval (VertexChanged vertex next) = next <$ State.modify _ {vertex = vertex}
-  eval (BeginEdit next) = next <$ State.modify _ {editing = true}
-  eval (CommitEdit text next) = do
-    State.modify \s ->
-      let vertex' = s.vertex # vertexBody .~ Right text
-      in s {vertex = vertex', editing = false}
+  eval (VertexChanged vertex next) = next <$ (stateVertex .= vertex)
+  eval (BeginEdit next) = next <$ (stateEditing .= true)
+  eval (SaveEdit text next) = next <$ (stateVertex <<< vertexBody .= Right text)
+  eval (CommitEdit next) = do
+    stateEditing .= false
     raise =<< State.gets _.vertex
     pure next
 

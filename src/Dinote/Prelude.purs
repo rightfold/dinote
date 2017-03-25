@@ -1,6 +1,7 @@
 module Dinote.Prelude
   ( module Control.Alt
   , module Control.Monad.Free
+  , module Control.MonadZero
   , module Data.Const
   , module Data.Either
   , module Data.Foldable
@@ -20,6 +21,7 @@ module Dinote.Prelude
 
 import Control.Alt ((<|>))
 import Control.Monad.Free (Free, foldFree, liftF)
+import Control.MonadZero (guard)
 import Data.Const (Const)
 import Data.Either (Either(..), either)
 import Data.Foldable (intercalate)
