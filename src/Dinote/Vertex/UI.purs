@@ -7,6 +7,7 @@ module Dinote.Vertex.UI
 
 import Control.Monad.State.Class as State
 import Data.Lens (Lens', (.=), (^.), lens)
+import Data.StrMap as StrMap
 import Dinote.Prelude
 import Dinote.Vertex (Vertex, vertexBody)
 import DOM.Event.KeyboardEvent as KeyboardEvent
@@ -17,13 +18,17 @@ import Halogen.HTML as H
 import Halogen.HTML.Events as E
 import Halogen.HTML.Properties as P
 import Halogen.Query (raise)
+import Text.Markdown.SlamDown.Halogen.Component (SlamDownState(..), renderSlamDown)
+import Text.Markdown.SlamDown.Parser (parseMd)
+import Text.Markdown.SlamDown.Syntax (SlamDownP)
 
 type State   =
   { vertex  :: Vertex
   , editing :: Boolean
   }
 data Query a
-  = VertexChanged Vertex a
+  = Void a
+  | VertexChanged Vertex a
   | BeginEdit a
   | SaveEdit String a
   | CommitEdit a
@@ -61,10 +66,19 @@ ui = component {initialState, render, eval, receiver}
 
   renderViewer :: Vertex -> ComponentHTML Query
   renderViewer vertex =
-    H.div [E.onDoubleClick (E.input_ BeginEdit)]
-      [H.text $ vertex ^. vertexBody]
+    H.div [E.onDoubleClick (E.input_ BeginEdit)] $
+      case parseMd (vertex ^. vertexBody) of
+        Left error -> [H.text error]
+        Right (document :: SlamDownP String) ->
+          let sdState = SlamDownState {document, formState: StrMap.empty}
+          in [Void unit <$ renderSlamDown sdConfig sdState]
+    where
+    sdConfig = { formName: ""
+               , browserFeatures: {inputTypeSupported: const false}
+               }
 
   eval :: Query ~> ComponentDSL State Query Output m
+  eval (Void next) = pure next
   eval (VertexChanged vertex next) = next <$ (stateVertex .= vertex)
   eval (BeginEdit next) = next <$ (stateEditing .= true)
   eval (SaveEdit text next) = next <$ (stateVertex <<< vertexBody .= text)
